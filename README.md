@@ -1,5 +1,5 @@
 # web_crawler:
-The purpose of this program is to browse the different catogories of ptt website.
+The purpose of this program is to browse the different catogories in the PTT website.
 
 ### Installation:
 ```
@@ -10,5 +10,3 @@ pip3 intall -r requirements
 ```
 python3 ptt.py
 ```
-
-
