@@ -5,16 +5,20 @@ import requests
 from bs4 import BeautifulSoup
 
 # Cotegories instructions
-print("Categories' commands:")
-print("NBA\t\t-- NBA")
-print("MH\t\t-- Monster Hunter World")
-print("Gossiping\t-- Gossipings")  # age 18 verification
-print("Sex\t\t-- Sex")  # age 18 verification
-print("Movie\t\t-- Movies")
-print("LoL\t\t-- League of Legend")
-print("Baseball\t-- baseball")
-print("\033[4mexit\033[0m\t\t-- \033[4mLeave program\033[0m")
-print("(You can also enter other categories you know the name)")
+instructions = """
+Categories' commands:
+NBA       -- NBA
+MH        -- Monster Hunter World
+Gossiping -- Gossipings
+Sex       -- Sex
+Movie     -- Movies
+LoL       -- League of Legend
+Baseball  -- baseball
+(You can also enter other categories you know the name)
+
+exit      -- Leave program
+"""
+print(instructions)
 
 # Repeat program until exit
 while True:
