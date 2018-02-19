@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
 import requests
@@ -12,7 +13,7 @@ print("Sex\t\t-- Sex")#age 18 verification
 print("Movie\t\t-- Movies")
 print("LoL\t\t-- League of Legend")
 print("Baseball\t-- baseball")
-print("\033[4mexit\t\t\033[0m-- \033[4Leave program\033[0m")
+print("\033[4mexit\033[0m\t\t-- \033[4mLeave program\033[0m")
 print("(You can also enter other categories you know the name)")
 
 #Repeat program until exit
@@ -23,13 +24,13 @@ while True:
 
     #Checking input(trun it to int)
     category = input("\nPlease input \033[4mcategory's\033[0m name(default: LoL):")
-    if not category:
-        category = 'LoL'
     if category == 'exit':
         break
+    if not category:#default of category
+        category = 'LoL'
     page = input("Please input how many \033[4mpages\033[0m you want to read(from newest to oldest)(default: 1):")
-    if not page:
-        page = int(1)
+    if not page:#default of page
+        page = 1
     if page == 'exit':
         break
     page = int(page)
