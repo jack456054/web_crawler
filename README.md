@@ -3,7 +3,7 @@ The purpose of this program is to browse the different catogories in the PTT web
 
 ### Installation:
 ```
-pip3 intall -r requirements
+pip3 install -r requirements
 ```
 
 ### Execution:
