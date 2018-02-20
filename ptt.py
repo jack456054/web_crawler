@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 
 
+# Print cotegories instructions
 def instruction_browsepages():
-    # Cotegories instructions
     instructions = """
     Categories' commands:
     NBA       -- NBA
@@ -26,6 +26,7 @@ def instruction_browsepages():
     print(instructions)
 
 
+# Print error message
 def error_msg():
     print("""
             ************************************
@@ -36,8 +37,11 @@ def error_msg():
     """)
 
 
+# Catch user's input
 def input_value():
     category = input("Category: ")
+
+    # User want to exit
     if category == 'exit':
         return 0, 0
     page = input("Pages: ")
@@ -62,9 +66,12 @@ def browsepages(category, page):
         res = requests.get('https://www.ptt.cc/bbs/{}/index.html'.format(category))
         html_doc = res.text
         bs4_html = BeautifulSoup(html_doc, "html.parser")
+
+        # If cannot find the websit, print error message
         if not bs4_html.find('title'):
             error_msg()
             return 0
+        
         # If there is over18 website, answer "Yes"
         if bs4_html.find('div', {'class': 'over18-notice'}):
             payload = {
@@ -104,6 +111,7 @@ def browsepages(category, page):
             if not older_page:
                 error_msg()
                 return 0
+
             # If it is over18 website, use 18-age session for next website
             if website18:
                 res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
@@ -119,9 +127,17 @@ def browsepages(category, page):
 
 
 if __name__ == "__main__":
+
+    # Print instructions
     instruction_browsepages()
+
+    # Repeated run until user what to exit
     while True:
+
+        # Catch user's input
         category, page = input_value()
+
+        # Check whether user what to exit
         if category == 0 and page == 0:
             print("""
                     ************************************
@@ -129,7 +145,10 @@ if __name__ == "__main__":
                     ************************************
             """)
             break
+        # Check whether user needs help
         elif category == "help" or page == "help":
             instruction_browsepages()
+
+        # Go browse the website
         else:
             browsepages(category, page)
