@@ -51,10 +51,10 @@ def help_msg():
 
 # Catch user's input
 def input_value():
-    instruction = input("Instrution(Default: Browse): ")
+    instruction = input("Instruction(Default: Browse): ")
     while instruction.lower() == 'help':
         instruction_browsepages()
-        instruction = input("Instrution(Default: Browse): ")
+        instruction = input("Instruction(Default: Browse): ")
 
     # User want to exit
     if instruction.lower() == 'exit':
