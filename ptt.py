@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 # Print cotegories instructions
 def instruction_browsepages():
     instructions = """
-    instructions commands:
+    Instructions commands:
     Find      -- Find the popular articles in the specific category
     Browse    -- Browse the specific category
 
