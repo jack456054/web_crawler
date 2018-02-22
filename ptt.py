@@ -155,6 +155,7 @@ def browsepages(category, page):
             bs4_html = BeautifulSoup(html_doc, "html.parser")
     help_msg()
 
+
 def find_articles(category, page):
 
     # Check whether there is a age 18 verification
@@ -206,7 +207,6 @@ def find_articles(category, page):
                     print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
                     count_pages += 1
 
-
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
         for next_page in find_next_page:
@@ -237,6 +237,7 @@ def find_articles(category, page):
     """.format(count_pages))
     help_msg()
 
+
 if __name__ == "__main__":
 
     # Print instructions
@@ -257,7 +258,7 @@ if __name__ == "__main__":
             """)
             break
 
-        elif instruction.lower() == 'find' :
+        elif instruction.lower() == 'find':
             find_articles(category, page)
 
         # Go browse the website
