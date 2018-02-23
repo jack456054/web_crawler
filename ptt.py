@@ -78,6 +78,17 @@ def input_value():
     return instruction, category, page
 
 
+def check_valid_push(push):
+    if push == '爆' or not push:
+        return '99'
+    elif int(push) == ValueError:
+        return '-1'
+    elif int(push) > 99 or int(push) < 0:
+        return '-1'
+    else:
+        return push
+
+
 def browsepages(category, page):
 
     # Check whether there is a age 18 verification
@@ -156,7 +167,7 @@ def browsepages(category, page):
     help_msg()
 
 
-def find_articles(category, page):
+def find_articles(category, page, push):
 
     # Check whether there is a age 18 verification
     website18 = False
@@ -203,9 +214,19 @@ def find_articles(category, page):
 
             # Delete deleted articles and display pushes(display 0 if there is no push)
             if title:
-                if (push_number.text) == '爆':
-                    print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
-                    count_pages += 1
+                if push == '0':
+                    if push_number.text:
+                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
+                        count_pages += 1
+                    else:
+                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format('0', title.text, title.get('href')))
+                        count_pages += 1
+                elif push_number.text:
+                    if (push_number.text)[0] == 'X':
+                        continue
+                    elif (push_number.text) == '爆' or int(push_number.text) >= int(push):
+                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
+                        count_pages += 1
 
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
@@ -259,7 +280,12 @@ if __name__ == "__main__":
             break
 
         elif instruction.lower() == 'find':
-            find_articles(category, page)
+            push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
+            push = check_valid_push(push)
+            while push == '-1':
+                push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
+                push = check_valid_push(push)
+            find_articles(category, page, push)
 
         # Go browse the website
         elif instruction.lower() == 'browse' or not instruction:
