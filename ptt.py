@@ -80,7 +80,7 @@ def input_value():
 
 def check_valid_push(push):
     if push == '爆' or not push:
-        return '99'
+        return '100'
     elif int(push) == ValueError:  # NEED TO FIX THIS PART
         return '-1'
     elif int(push) > 99 or int(push) < 0:
