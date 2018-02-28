@@ -78,15 +78,20 @@ def input_value():
     return instruction, category, page
 
 
+# Check whether is valid input
 def check_valid_push(push):
-    if push == '爆' or not push:
-        return '100'
-    elif int(push) == ValueError:  # NEED TO FIX THIS PART
-        return '-1'
-    elif int(push) > 99 or int(push) < 0:
-        return '-1'
-    else:
-        return push
+    while True:
+        try:
+            if push == '爆' or not push:
+                return '100'
+            elif int(push) > 99 or int(push) < 0:
+                return '-1'
+            else:
+                return push
+
+        # Check whether type correct
+        except ValueError:
+            return '-1'
 
 
 def browsepages(category, page):
@@ -282,7 +287,12 @@ if __name__ == "__main__":
         elif instruction.lower() == 'find':
             push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
             push = check_valid_push(push)
+
+            # Check whether is valid input
             while push == '-1':
+                print("""
+                        *** Please insert 0 to 99 or '爆' ***
+                """)
                 push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
                 push = check_valid_push(push)
             find_articles(category, page, push)
