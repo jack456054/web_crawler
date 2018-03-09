@@ -94,11 +94,17 @@ def check_valid_push(push):
             return '-1'
 
 
+def print_info(articles_info):
+    for index, (pushes, titles, urls) in enumerate(articles_info):
+        print('[{}]\t\033[4mhttps://www.ptt.cc{:<30}\033[0m {:<50} '.format(pushes, urls, titles))
+
+
 def browsepages(category, page):
 
     # Check whether there is a age 18 verification
     website18 = False
     older_page = None
+    articles_info = []
 
     # Checking input(trun it to int)
     if not category:  # default of category
@@ -132,8 +138,9 @@ def browsepages(category, page):
 
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
+        articles_info = []
         print("\n--------------------Page {}--------------------".format(i))
-        print ("Pushes\t\tTitles\t\t\t\t\tUrls")
+        print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
             push_number = article.find("div", {"class": "nrec"})
@@ -142,10 +149,10 @@ def browsepages(category, page):
             # Delete deleted articles and display pushes(display 0 if there is no push)
             if title:
                 if push_number.text:
-                    print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
+                    articles_info.append([push_number.text, title.text, title.get('href')])
                 else:
-                    print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format('0', title.text, title.get('href')))
-
+                    articles_info.append(['0', title.text, title.get('href')])
+        print_info(articles_info)
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
         for next_page in find_next_page:
@@ -178,6 +185,7 @@ def find_articles(category, page, push):
     website18 = False
     older_page = None
     count_pages = 0
+    articles_info = []
 
     # Checking input(trun it to int)
     if not category:  # default of category
@@ -208,7 +216,7 @@ def find_articles(category, page, push):
         html_doc = res.text
         bs4_html = BeautifulSoup(html_doc, "html.parser")
         website18 = True
-    print ("Pushes\t\tTitles\t\t\t\t\tUrls")
+    print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
 
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
@@ -221,16 +229,16 @@ def find_articles(category, page, push):
             if title:
                 if push == '0':
                     if push_number.text:
-                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
+                        articles_info.append([push_number.text, title.text, title.get('href')])
                         count_pages += 1
                     else:
-                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format('0', title.text, title.get('href')))
+                        articles_info.append(['0', title.text, title.get('href')])
                         count_pages += 1
                 elif push_number.text:
                     if (push_number.text)[0] == 'X':
                         continue
                     elif (push_number.text) == '爆' or int(push_number.text) >= int(push):
-                        print('[{}]\t{} \033[4mhttps://www.ptt.cc{}\033[0m'.format(push_number.text, title.text, title.get('href')))
+                        articles_info.append([push_number.text, title.text, title.get('href')])
                         count_pages += 1
 
         # Get the url for the next page
@@ -241,6 +249,7 @@ def find_articles(category, page, push):
 
         # If not next page, print error message
         if not older_page:
+            print_info(articles_info)
             print("""
             ***   There are total {} articles   ***
             """.format(count_pages))
@@ -258,6 +267,7 @@ def find_articles(category, page, push):
             res = requests.get(older_page)
             html_doc = res.text
             bs4_html = BeautifulSoup(html_doc, "html.parser")
+    print_info(articles_info)
     print("""
     ***   There are total {} articles   ***
     """.format(count_pages))
