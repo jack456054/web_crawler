@@ -2,58 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import template
 from bs4 import BeautifulSoup
-
-
-# Print cotegories instructions
-def instruction_browsepages():
-    instructions = """
-    Instructions commands:
-    Find      -- Find the popular articles in the specific category
-    Browse    -- Browse the specific category
-
-
-    Categories' commands:
-    NBA       -- NBA
-    MH        -- Monster Hunter World
-    Gossiping -- Gossipings
-    Sex       -- Sex
-    Movie     -- Movies
-    LoL       -- League of Legend
-    Baseball  -- baseball
-    (You can also enter other categories you know the name)
-
-    exit      -- Leave program
-
-    Please input Instruction, Category and how many Pages to read:
-    """
-    print(instructions)
-
-
-# Print error message
-def error_msg():
-    print("""
-            ************************************
-            *** Oops, something goes wrong!! ***
-            ***                              ***
-            ***      Please try again!!      ***
-            ************************************
-    """)
-    help_msg()
-
-
-def help_msg():
-    # Help message
-    print("""
-    ### help      -- Look for instructions
-    """)
 
 
 # Catch user's input
 def input_value():
     instruction = input("Instruction(Default: Browse): ")
     while instruction.lower() == 'help':
-        instruction_browsepages()
+        template.instruction_browsepages()
         instruction = input("Instruction(Default: Browse): ")
 
     # User want to exit
@@ -61,15 +18,15 @@ def input_value():
         return 0, 0, 0
     category = input("Category(Default: LoL): ")
     while category.lower() == 'help':
-        instruction_browsepages()
+        template.instruction_browsepages()
         category = input("Category(Default: LoL): ")
 
     # User want to exit
     if category.lower() == 'exit':
         return 0, 0, 0
     page = input("Pages(Default: 1): ")
-    while category.lower() == 'help':
-        instruction_browsepages()
+    while page.lower() == 'help':
+        template.instruction_browsepages()
         page = input("Pages(Default: 1): ")
 
     # User want to exit
@@ -120,7 +77,7 @@ def browsepages(category, page):
 
     # If cannot find the websit, print error message
     if not bs4_html.find('title'):
-        error_msg()
+        template.error_msg()
         return 0
 
     # If there is over18 website, answer "Yes"
@@ -139,8 +96,6 @@ def browsepages(category, page):
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
         articles_info = []
-        print("\n--------------------Page {}--------------------".format(i))
-        print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
             push_number = article.find("div", {"class": "nrec"})
@@ -152,6 +107,8 @@ def browsepages(category, page):
                     articles_info.append([push_number.text, title.text, title.get('href')])
                 else:
                     articles_info.append(['0', title.text, title.get('href')])
+        print("\n--------------------Page {}--------------------".format(i))
+        print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
         print_info(articles_info)
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
@@ -161,7 +118,7 @@ def browsepages(category, page):
 
         # If not next page, print error message
         if not older_page:
-            error_msg()
+            template.error_msg()
             return 0
 
         # If it is over18 website, use 18-age session for next website
@@ -176,7 +133,7 @@ def browsepages(category, page):
             res = requests.get(older_page)
             html_doc = res.text
             bs4_html = BeautifulSoup(html_doc, "html.parser")
-    help_msg()
+    template.help_msg()
 
 
 def find_articles(category, page, push):
@@ -201,7 +158,7 @@ def find_articles(category, page, push):
 
     # If cannot find the websit, print error message
     if not bs4_html.find('title'):
-        error_msg()
+        template.error_msg()
         return 0
 
     # If there is over18 website, answer "Yes"
@@ -216,7 +173,6 @@ def find_articles(category, page, push):
         html_doc = res.text
         bs4_html = BeautifulSoup(html_doc, "html.parser")
         website18 = True
-    print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
 
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
@@ -249,6 +205,7 @@ def find_articles(category, page, push):
 
         # If not next page, print error message
         if not older_page:
+            print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
             print_info(articles_info)
             print("""
             ***   There are total {} articles   ***
@@ -267,17 +224,18 @@ def find_articles(category, page, push):
             res = requests.get(older_page)
             html_doc = res.text
             bs4_html = BeautifulSoup(html_doc, "html.parser")
+    print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
     print_info(articles_info)
     print("""
     ***   There are total {} articles   ***
     """.format(count_pages))
-    help_msg()
+    template.help_msg()
 
 
 if __name__ == "__main__":
 
     # Print instructions
-    instruction_browsepages()
+    template.instruction_browsepages()
 
     # Repeated run until user what to exit
     while True:
@@ -287,11 +245,7 @@ if __name__ == "__main__":
 
         # Check whether user what to exit
         if category == 0 and page == 0:
-            print("""
-                    ************************************
-                    ***            Bye!!             ***
-                    ************************************
-            """)
+            template.bye_msg()
             break
 
         elif instruction.lower() == 'find':
@@ -312,4 +266,4 @@ if __name__ == "__main__":
             browsepages(category, page)
 
         else:
-            error_msg()
+            template.error_msg()
