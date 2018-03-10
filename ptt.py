@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 
 
 # Catch user's input
-def input_value():
+def input_value(hotboards):
+
     input_msg = 'Instruction(Default: Browse): '
     instruction = input(input_msg)
     instruction = whether_help(instruction, input_msg)
@@ -26,7 +27,7 @@ def input_value():
 
     # Check whether valid input or exit or help
     category = whether_help(category, input_msg)
-    if category:
+    if category and category.lower() not in hotboards:
         bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
         while not bs4_html.find('title') or bs4_html.find('title').text == '404':
             template.invalid_input_msg()
@@ -35,7 +36,7 @@ def input_value():
             if not category:
                 break
             bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-    else:
+    elif not category:
         category = 'LoL'
         print(category)
     input_msg = 'Pages(Default: 1): '
@@ -117,6 +118,18 @@ def over18(current_page):
         html_doc = res.text
         bs4_html = BeautifulSoup(html_doc, "html.parser")
     return bs4_html
+
+
+# Find hotboards
+def find_hotboards():
+
+    # Sending request to the website
+    bs4_html = over18('https://www.ptt.cc/bbs/hotboards.html')
+    hotboards = []
+    boardnames = bs4_html.find_all("div", {"class": "board-name"})
+    for boardname in boardnames:
+        hotboards.append(boardname.text.lower())
+    return hotboards
 
 
 # Print the information
@@ -235,6 +248,9 @@ def find_articles(category, page, push):
 
 if __name__ == "__main__":
 
+    # Find hotboards
+    hotboards = find_hotboards()
+
     # Print instructions
     template.instruction_browsepages()
 
@@ -242,7 +258,7 @@ if __name__ == "__main__":
     while True:
 
         # Catch user's input
-        instruction, category, page = input_value()
+        instruction, category, page = input_value(hotboards)
         if instruction.lower() == 'find':
             push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
             push = check_valid_push(push)
