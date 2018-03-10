@@ -53,3 +53,27 @@ def bye_msg():
             ***            Bye!!             ***
             ************************************
     """)
+
+
+def print_counts(count_pages):
+    print("""
+    ***   There are total {} articles   ***
+    """.format(count_pages))
+
+
+def print_no_other_pages():
+    print("""
+            ************************************
+            ***  There are not enough pages. ***
+            ************************************
+    """)
+
+
+def invalid_input_msg():
+    print("""
+            ************************************
+            ***    Oops, invalid inputs!!    ***
+            ***                              ***
+            ***      Please try again!!      ***
+            ************************************
+    """)

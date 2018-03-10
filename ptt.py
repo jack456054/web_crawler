@@ -11,19 +11,53 @@ def input_value():
     input_msg = 'Instruction(Default: Browse): '
     instruction = input(input_msg)
 
-    # User want to exit or help
-    whether_exit_help(instruction, input_msg)
+    # Check whether valid input or exit or help
+    while instruction.lower() != 'browse' and instruction.lower() != 'find':
+        if not instruction:
+            break
+        template.invalid_input_msg()
+        instruction = input(input_msg)
+        whether_exit_help(instruction, input_msg)
+    if not instruction:
+        instruction = 'Browse'
+    print(instruction)
     input_msg = 'Category(Default: LoL): '
     category = input(input_msg)
 
-    # User want to exit or help
+    # Check whether valid input or exit or help
+    bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
     whether_exit_help(category, input_msg)
+    while not bs4_html.find('title') or bs4_html.find('title').text == '404':
+        template.invalid_input_msg()
+        category = input(input_msg)
+        whether_exit_help(category, input_msg)
+        bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
+    if not category:
+        category = 'LoL'
+    print(category)
     input_msg = 'Pages(Default: 1): '
     page = input(input_msg)
 
-    # User want to exit
-    whether_exit_help(page, input_msg)
-    return instruction, category, page
+    # Check whether valid input or exit or help
+    while True:
+        try:
+            if not page:
+                break
+            while int(page) <= 0:
+                template.invalid_input_msg()
+                page = input(input_msg)
+                whether_exit_help(page, input_msg)
+            break
+
+        # Check whether type correct
+        except ValueError:
+                template.invalid_input_msg()
+                page = input(input_msg)
+                whether_exit_help(page, input_msg)
+    if not page:
+        page = '1'
+    print(page)
+    return instruction, category, int(page)
 
 
 # Check whether user what to exit
@@ -75,24 +109,20 @@ def over18(current_page):
     return bs4_html
 
 
+# Print the information
 def print_info(articles_info):
     print("{:7} {:50} {}".format('Pushes', 'URLs', 'Titles'))
     for index, (pushes, titles, urls) in enumerate(articles_info):
         print('[{}]\t\033[4mhttps://www.ptt.cc{:<30}\033[0m {:<50} '.format(pushes, urls, titles))
 
 
+# Browse pages
 def browsepages(category, page):
 
     # Check whether there is a age 18 verification
     older_page = None
+    count_pages = 0
     articles_info = []
-
-    # Checking input(trun it to int)
-    if not category:  # default of category
-        category = 'LoL'
-    if not page:  # default of page
-        page = 1
-    page = int(page)
     current_page = ('https://www.ptt.cc/bbs/{}/index.html'.format(category))
 
     # Find pushes, titles, and urls in each page
@@ -100,13 +130,9 @@ def browsepages(category, page):
 
         # Sending request and check over18 page
         bs4_html = over18(current_page)
-
-        # If cannot find the websit, print error message
-        if not bs4_html.find('title'):
-            template.error_msg()
-            return 0
-
         articles_info = []
+
+        # Find articles
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
             push_number = article.find("div", {"class": "nrec"})
@@ -116,10 +142,13 @@ def browsepages(category, page):
             if title:
                 if push_number.text:
                     articles_info.append([push_number.text, title.text, title.get('href')])
+                    count_pages += 1
                 else:
                     articles_info.append(['0', title.text, title.get('href')])
+                    count_pages += 1
         print("\n--------------------Page {}--------------------".format(i))
         print_info(articles_info)
+
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
         for next_page in find_next_page:
@@ -128,11 +157,13 @@ def browsepages(category, page):
 
         # If not next page, print error message
         if not older_page:
-            template.error_msg()
+            template.print_counts(count_pages)
+            template.print_no_other_pages()
             return 0
 
         # Next page
         current_page = older_page
+    template.print_counts(count_pages)
     template.help_msg()
 
 
@@ -142,14 +173,6 @@ def find_articles(category, page, push):
     older_page = None
     count_pages = 0
     articles_info = []
-
-    # Checking input(trun it to int)
-    if not category:  # default of category
-        category = 'LoL'
-    if not page:  # default of page
-        page = 1
-    page = int(page)
-
     current_page = ('https://www.ptt.cc/bbs/{}/index.html'.format(category))
 
     # Find pushes, titles, and urls in each page
@@ -158,11 +181,7 @@ def find_articles(category, page, push):
         # Sending request and check over18 page
         bs4_html = over18(current_page)
 
-        # If cannot find the websit, print error message
-        if not bs4_html.find('title'):
-            template.error_msg()
-            return 0
-
+        # Find titles and pushes
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
             push_number = article.find("div", {"class": "nrec"})
@@ -193,17 +212,14 @@ def find_articles(category, page, push):
         # If not next page, print error message
         if not older_page:
             print_info(articles_info)
-            print("""
-            ***   There are total {} articles   ***
-            """.format(count_pages))
+            template.print_no_other_pages()
+            template.print_counts(count_pages)
             return 0
 
         # Next page
         current_page = older_page
     print_info(articles_info)
-    print("""
-    ***   There are total {} articles   ***
-    """.format(count_pages))
+    template.print_counts(count_pages)
     template.help_msg()
 
 
@@ -228,6 +244,11 @@ if __name__ == "__main__":
                 """)
                 push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
                 push = check_valid_push(push)
+            if push == '100':
+                print('爆')
+            else:
+                print(push)
+            print("(Fetching, please be patient.)")
             find_articles(category, page, push)
 
         # Go browse the website
