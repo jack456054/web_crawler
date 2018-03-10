@@ -10,65 +10,75 @@ from bs4 import BeautifulSoup
 def input_value():
     input_msg = 'Instruction(Default: Browse): '
     instruction = input(input_msg)
+    instruction = whether_help(instruction, input_msg)
 
     # Check whether valid input or exit or help
     while instruction.lower() != 'browse' and instruction.lower() != 'find':
         if not instruction:
+            instruction = 'Browse'
+            print(instruction)
             break
         template.invalid_input_msg()
         instruction = input(input_msg)
-        whether_exit_help(instruction, input_msg)
-    if not instruction:
-        instruction = 'Browse'
-    print(instruction)
+        instruction = whether_help(instruction, input_msg)
     input_msg = 'Category(Default: LoL): '
     category = input(input_msg)
 
     # Check whether valid input or exit or help
-    bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-    whether_exit_help(category, input_msg)
-    while not bs4_html.find('title') or bs4_html.find('title').text == '404':
-        template.invalid_input_msg()
-        category = input(input_msg)
-        whether_exit_help(category, input_msg)
+    category = whether_help(category, input_msg)
+    if category:
         bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-    if not category:
+        while not bs4_html.find('title') or bs4_html.find('title').text == '404':
+            template.invalid_input_msg()
+            category = input(input_msg)
+            category = whether_help(category, input_msg)
+            if not category:
+                break
+            bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
+    else:
         category = 'LoL'
-    print(category)
+        print(category)
     input_msg = 'Pages(Default: 1): '
     page = input(input_msg)
+    page = whether_help(page, input_msg)
 
     # Check whether valid input or exit or help
     while True:
         try:
             if not page:
+                page = '1'
+                print(page)
                 break
             while int(page) <= 0:
                 template.invalid_input_msg()
                 page = input(input_msg)
-                whether_exit_help(page, input_msg)
+                page = whether_help(page, input_msg)
             break
 
         # Check whether type correct
         except ValueError:
                 template.invalid_input_msg()
                 page = input(input_msg)
-                whether_exit_help(page, input_msg)
-    if not page:
-        page = '1'
-    print(page)
+                page = whether_help(page, input_msg)
     return instruction, category, int(page)
 
 
-# Check whether user what to exit
-def whether_exit_help(user_input, input_msg):
+# Check whether user needs help
+def whether_help(user_input, input_msg):
     while user_input.lower() == 'help':
         template.instruction_browsepages()
         user_input = input(input_msg)
+        whether_exit(user_input)
+        if not user_input:
+            return user_input
+    return user_input
+
+
+# Check whether user want to exit
+def whether_exit(user_input):
     if user_input.lower() == 'exit':
         template.bye_msg()
         exit()
-    return user_input
 
 
 # Check whether is valid input
