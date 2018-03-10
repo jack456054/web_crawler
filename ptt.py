@@ -72,6 +72,7 @@ def whether_help(user_input, input_msg):
         whether_exit(user_input)
         if not user_input:
             return user_input
+    whether_exit(user_input)
     return user_input
 
 
