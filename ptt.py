@@ -8,31 +8,33 @@ from bs4 import BeautifulSoup
 
 # Catch user's input
 def input_value():
-    instruction = input("Instruction(Default: Browse): ")
-    while instruction.lower() == 'help':
-        template.instruction_browsepages()
-        instruction = input("Instruction(Default: Browse): ")
+    input_msg = 'Instruction(Default: Browse): '
+    instruction = input(input_msg)
+
+    # User want to exit or help
+    whether_exit_help(instruction, input_msg)
+    input_msg = 'Category(Default: LoL): '
+    category = input(input_msg)
+
+    # User want to exit or help
+    whether_exit_help(category, input_msg)
+    input_msg = 'Pages(Default: 1): '
+    page = input(input_msg)
 
     # User want to exit
-    if instruction.lower() == 'exit':
-        return 0, 0, 0
-    category = input("Category(Default: LoL): ")
-    while category.lower() == 'help':
-        template.instruction_browsepages()
-        category = input("Category(Default: LoL): ")
-
-    # User want to exit
-    if category.lower() == 'exit':
-        return 0, 0, 0
-    page = input("Pages(Default: 1): ")
-    while page.lower() == 'help':
-        template.instruction_browsepages()
-        page = input("Pages(Default: 1): ")
-
-    # User want to exit
-    if page.lower() == 'exit':
-        return 0, 0, 0
+    whether_exit_help(page, input_msg)
     return instruction, category, page
+
+
+# Check whether user what to exit
+def whether_exit_help(user_input, input_msg):
+    while user_input.lower() == 'help':
+        template.instruction_browsepages()
+        user_input = input(input_msg)
+    if user_input.lower() == 'exit':
+        template.bye_msg()
+        exit()
+    return user_input
 
 
 # Check whether is valid input
@@ -51,7 +53,30 @@ def check_valid_push(push):
             return '-1'
 
 
+# Sending request to the website and if there is over18 website, answer "Yes"
+def over18(current_page):
+
+    # Sending request to the website
+    res = requests.get(current_page)
+    html_doc = res.text
+    bs4_html = BeautifulSoup(html_doc, "html.parser")
+
+    # If there is over18 website, answer "Yes"
+    if bs4_html.find('div', {'class': 'over18-notice'}):
+        payload = {
+            'from': current_page,
+            'yes': 'yes'
+        }
+        rs = requests.session()
+        res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
+        res = rs.get(current_page)
+        html_doc = res.text
+        bs4_html = BeautifulSoup(html_doc, "html.parser")
+    return bs4_html
+
+
 def print_info(articles_info):
+    print("{:7} {:50} {}".format('Pushes', 'URLs', 'Titles'))
     for index, (pushes, titles, urls) in enumerate(articles_info):
         print('[{}]\t\033[4mhttps://www.ptt.cc{:<30}\033[0m {:<50} '.format(pushes, urls, titles))
 
@@ -59,7 +84,6 @@ def print_info(articles_info):
 def browsepages(category, page):
 
     # Check whether there is a age 18 verification
-    website18 = False
     older_page = None
     articles_info = []
 
@@ -69,32 +93,19 @@ def browsepages(category, page):
     if not page:  # default of page
         page = 1
     page = int(page)
-
-    # Sending request to the website
-    res = requests.get('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-    html_doc = res.text
-    bs4_html = BeautifulSoup(html_doc, "html.parser")
-
-    # If cannot find the websit, print error message
-    if not bs4_html.find('title'):
-        template.error_msg()
-        return 0
-
-    # If there is over18 website, answer "Yes"
-    if bs4_html.find('div', {'class': 'over18-notice'}):
-        payload = {
-            'from': 'https://www.ptt.cc/bbs/{}/index.html'.format(category),
-            'yes': 'yes'
-        }
-        rs = requests.session()
-        res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
-        res = rs.get('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-        html_doc = res.text
-        bs4_html = BeautifulSoup(html_doc, "html.parser")
-        website18 = True
+    current_page = ('https://www.ptt.cc/bbs/{}/index.html'.format(category))
 
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
+
+        # Sending request and check over18 page
+        bs4_html = over18(current_page)
+
+        # If cannot find the websit, print error message
+        if not bs4_html.find('title'):
+            template.error_msg()
+            return 0
+
         articles_info = []
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
@@ -108,7 +119,6 @@ def browsepages(category, page):
                 else:
                     articles_info.append(['0', title.text, title.get('href')])
         print("\n--------------------Page {}--------------------".format(i))
-        print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
         print_info(articles_info)
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
@@ -121,25 +131,14 @@ def browsepages(category, page):
             template.error_msg()
             return 0
 
-        # If it is over18 website, use 18-age session for next website
-        if website18:
-            res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
-            res = rs.get(older_page)
-            html_doc = res.text
-            bs4_html = BeautifulSoup(html_doc, "html.parser")
-
-        # Sending request to the next website
-        else:
-            res = requests.get(older_page)
-            html_doc = res.text
-            bs4_html = BeautifulSoup(html_doc, "html.parser")
+        # Next page
+        current_page = older_page
     template.help_msg()
 
 
 def find_articles(category, page, push):
 
     # Check whether there is a age 18 verification
-    website18 = False
     older_page = None
     count_pages = 0
     articles_info = []
@@ -151,31 +150,19 @@ def find_articles(category, page, push):
         page = 1
     page = int(page)
 
-    # Sending request to the website
-    res = requests.get('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-    html_doc = res.text
-    bs4_html = BeautifulSoup(html_doc, "html.parser")
-
-    # If cannot find the websit, print error message
-    if not bs4_html.find('title'):
-        template.error_msg()
-        return 0
-
-    # If there is over18 website, answer "Yes"
-    if bs4_html.find('div', {'class': 'over18-notice'}):
-        payload = {
-            'from': 'https://www.ptt.cc/bbs/{}/index.html'.format(category),
-            'yes': 'yes'
-        }
-        rs = requests.session()
-        res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
-        res = rs.get('https://www.ptt.cc/bbs/{}/index.html'.format(category))
-        html_doc = res.text
-        bs4_html = BeautifulSoup(html_doc, "html.parser")
-        website18 = True
+    current_page = ('https://www.ptt.cc/bbs/{}/index.html'.format(category))
 
     # Find pushes, titles, and urls in each page
     for i in range(1, page + 1):
+
+        # Sending request and check over18 page
+        bs4_html = over18(current_page)
+
+        # If cannot find the websit, print error message
+        if not bs4_html.find('title'):
+            template.error_msg()
+            return 0
+
         articles = bs4_html.find_all("div", {"class": "r-ent"})
         for article in articles:
             push_number = article.find("div", {"class": "nrec"})
@@ -205,26 +192,14 @@ def find_articles(category, page, push):
 
         # If not next page, print error message
         if not older_page:
-            print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
             print_info(articles_info)
             print("""
             ***   There are total {} articles   ***
             """.format(count_pages))
             return 0
 
-        # If it is over18 website, use 18-age session for next website
-        if website18:
-            res = rs.post('https://www.ptt.cc/ask/over18', data=payload)
-            res = rs.get(older_page)
-            html_doc = res.text
-            bs4_html = BeautifulSoup(html_doc, "html.parser")
-
-        # Sending request to the next website
-        else:
-            res = requests.get(older_page)
-            html_doc = res.text
-            bs4_html = BeautifulSoup(html_doc, "html.parser")
-    print("Pushes\t\tUrls\t\t\t\t\t\tTitles")
+        # Next page
+        current_page = older_page
     print_info(articles_info)
     print("""
     ***   There are total {} articles   ***
@@ -242,13 +217,7 @@ if __name__ == "__main__":
 
         # Catch user's input
         instruction, category, page = input_value()
-
-        # Check whether user what to exit
-        if category == 0 and page == 0:
-            template.bye_msg()
-            break
-
-        elif instruction.lower() == 'find':
+        if instruction.lower() == 'find':
             push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
             push = check_valid_push(push)
 
