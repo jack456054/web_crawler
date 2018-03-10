@@ -15,9 +15,9 @@ def find_hotboards():
 
     boardnames = bs4_html.find_all("div", {"class": "board-name"})
     for boardname in boardnames:
-        hotboards.append(boardname.text.lower())
+        hotboards.append(boardname.text)
 
-    print(hotboards)
+    return hotboards
 
 
 if __name__ == '__main__':
