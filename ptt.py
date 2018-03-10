@@ -131,8 +131,7 @@ def find_hotboards():
     bs4_html = over18('https://www.ptt.cc/bbs/hotboards.html')
     hotboards = []
     boardnames = bs4_html.find_all("div", {"class": "board-name"})
-    for boardname in boardnames:
-        hotboards.append(boardname.text.lower())
+    hotboards = [boardname.text.lower() for boardname in boardnames]
     return hotboards
 
 
