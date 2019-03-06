@@ -28,14 +28,16 @@ def input_value(hotboards):
     # Check whether valid input or exit or help
     category = whether_help(category, input_msg)
     if category and category.lower() not in hotboards:
-        bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
+        bs4_html = over18(
+            'https://www.ptt.cc/bbs/{}/index.html'.format(category))
         while not bs4_html.find('title') or bs4_html.find('title').text == '404':
             template.invalid_input_msg()
             category = input(input_msg)
             category = whether_help(category, input_msg)
             if not category:
                 break
-            bs4_html = over18('https://www.ptt.cc/bbs/{}/index.html'.format(category))
+            bs4_html = over18(
+                'https://www.ptt.cc/bbs/{}/index.html'.format(category))
     elif not category:
         category = 'LoL'
         print(category)
@@ -58,9 +60,9 @@ def input_value(hotboards):
 
         # Check whether type correct
         except ValueError:
-                template.invalid_input_msg()
-                page = input(input_msg)
-                page = whether_help(page, input_msg)
+            template.invalid_input_msg()
+            page = input(input_msg)
+            page = whether_help(page, input_msg)
     return instruction, category, int(page)
 
 
@@ -139,7 +141,8 @@ def find_hotboards():
 def print_info(articles_info):
     print("{:7} {:50} {}".format('Pushes', 'URLs', 'Titles'))
     for index, (pushes, titles, urls) in enumerate(articles_info):
-        print('[{}]\t\033[4mhttps://www.ptt.cc{:<30}\033[0m {:<50} '.format(pushes, urls, titles))
+        print(
+            '[{}]\t\033[4mhttps://www.ptt.cc{:<30}\033[0m {:<50} '.format(pushes, urls, titles))
 
 
 # Browse pages
@@ -167,7 +170,8 @@ def browsepages(category, page):
             # Delete deleted articles and display pushes(display 0 if there is no push)
             if title:
                 if push_number.text:
-                    articles_info.append([push_number.text, title.text, title.get('href')])
+                    articles_info.append(
+                        [push_number.text, title.text, title.get('href')])
                     count_pages += 1
                 else:
                     articles_info.append(['0', title.text, title.get('href')])
@@ -179,7 +183,8 @@ def browsepages(category, page):
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
         for next_page in find_next_page:
             if next_page.text == "‹ 上頁":
-                older_page = 'https://www.ptt.cc{}'.format(next_page.get('href'))
+                older_page = 'https://www.ptt.cc{}'.format(
+                    next_page.get('href'))
 
         # If not next page, print error message
         if not older_page:
@@ -217,23 +222,27 @@ def find_articles(category, page, push):
             if title:
                 if push == '0':
                     if push_number.text:
-                        articles_info.append([push_number.text, title.text, title.get('href')])
+                        articles_info.append(
+                            [push_number.text, title.text, title.get('href')])
                         count_pages += 1
                     else:
-                        articles_info.append(['0', title.text, title.get('href')])
+                        articles_info.append(
+                            ['0', title.text, title.get('href')])
                         count_pages += 1
                 elif push_number.text:
                     if (push_number.text)[0] == 'X':
                         continue
                     elif (push_number.text) == '爆' or int(push_number.text) >= int(push):
-                        articles_info.append([push_number.text, title.text, title.get('href')])
+                        articles_info.append(
+                            [push_number.text, title.text, title.get('href')])
                         count_pages += 1
 
         # Get the url for the next page
         find_next_page = bs4_html.find_all('a', {"class": "btn wide"})
         for next_page in find_next_page:
             if next_page.text == "‹ 上頁":
-                older_page = 'https://www.ptt.cc{}'.format(next_page.get('href'))
+                older_page = 'https://www.ptt.cc{}'.format(
+                    next_page.get('href'))
 
         # If not next page, print error message
         if not older_page:
@@ -263,7 +272,8 @@ if __name__ == "__main__":
         # Catch user's input
         instruction, category, page = input_value(hotboards)
         if instruction.lower() == 'find':
-            push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
+            push = input(
+                "Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
             push = check_valid_push(push)
 
             # Check whether is valid input
@@ -271,7 +281,8 @@ if __name__ == "__main__":
                 print("""
                         *** Please insert 0 to 99 or '爆' ***
                 """)
-                push = input("Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
+                push = input(
+                    "Find the articles over how many pushes(From 0 to 99)(Default: 爆): ")
                 push = check_valid_push(push)
             find_articles(category, page, push)
 
